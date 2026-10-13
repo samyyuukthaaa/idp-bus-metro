@@ -57,7 +57,12 @@ function PlanJourney() {
     setFilters(defaultFilters);
     try {
       const result = await getRoutes({ start, end, buffer_pct: buffer });
-      setRoutes(removeDuplicates(result));
+            const distinct = removeDuplicates(result);
+      setRoutes(distinct);
+      localStorage.setItem(
+        "lastSearch",
+        JSON.stringify({ routes: distinct, start, end, buffer })
+      );
     } catch (e) {
       setError("Something went wrong while searching. Check the uvicorn terminal.");
     }
