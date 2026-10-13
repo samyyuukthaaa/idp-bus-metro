@@ -28,7 +28,7 @@ function Donut({ data, colors, centerText, centerSub }) {
   );
 }
 
-function RouteInsights({ route }) {
+function RouteInsights({ route, onDetails }) {
   if (!route) return null;
 
   const prob = route.success_probability;
@@ -86,6 +86,13 @@ function RouteInsights({ route }) {
           ))}
         </div>
       </div>
+
+      <button
+        onClick={onDetails}
+        className="w-full bg-blue-600 text-white rounded-lg py-3 font-semibold hover:bg-blue-700"
+      >
+        View Journey Details
+      </button>
     </div>
   );
 }

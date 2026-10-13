@@ -4,7 +4,7 @@ import { getStops, getRoutes } from "../services/api";
 import RouteCard from "../components/journey/RouteCard";
 import FilterPanel from "../components/journey/FilterPanel";
 import RouteInsights from "../components/journey/RouteInsights";
-
+import { useNavigate } from "react-router-dom";
 // The API returns near-identical routes; keep only distinct ones
 function removeDuplicates(routes) {
   const seen = new Set();
@@ -21,6 +21,7 @@ function removeDuplicates(routes) {
 const defaultFilters = { bus: true, metro: true, maxTransfers: 6, minProb: 0, sort: "best" };
 
 function PlanJourney() {
+    const navigate = useNavigate();
   const [stops, setStops] = useState([]);
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -175,7 +176,14 @@ function PlanJourney() {
             </div>
           </div>
 
-          <RouteInsights route={selected} />
+                    <RouteInsights
+            route={selected}
+            onDetails={() =>
+              navigate("/route-details", {
+                state: { route: selected, start, end, buffer },
+              })
+            }
+          />
         </div>
       )}
     </div>
