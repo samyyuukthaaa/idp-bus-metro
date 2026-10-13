@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { getStops, getRoutes } from "../services/api";
 import RouteCard from "../components/journey/RouteCard";
+import FilterPanel from "../components/journey/FilterPanel";
+import RouteInsights from "../components/journey/RouteInsights";
 
 // The API returns near-identical routes; keep only distinct ones
 function removeDuplicates(routes) {
@@ -16,6 +18,8 @@ function removeDuplicates(routes) {
   });
 }
 
+const defaultFilters = { bus: true, metro: true, maxTransfers: 6, minProb: 0, sort: "best" };
+
 function PlanJourney() {
   const [stops, setStops] = useState([]);
   const [start, setStart] = useState("");
@@ -24,6 +28,8 @@ function PlanJourney() {
   const [routes, setRoutes] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState(defaultFilters);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     getStops()
@@ -46,6 +52,8 @@ function PlanJourney() {
     }
     setLoading(true);
     setRoutes(null);
+    setSelectedId(null);
+    setFilters(defaultFilters);
     try {
       const result = await getRoutes({ start, end, buffer_pct: buffer });
       setRoutes(removeDuplicates(result));
@@ -54,6 +62,25 @@ function PlanJourney() {
     }
     setLoading(false);
   };
+
+  // Apply filters and sorting
+  let visible = [];
+  if (routes) {
+    visible = routes.filter((r) => {
+      const modes = r.legs.map((l) => l.mode);
+      if (!filters.bus && modes.includes("bus")) return false;
+      if (!filters.metro && modes.includes("metro")) return false;
+      if (r.num_transfers > filters.maxTransfers) return false;
+      if (r.success_probability < filters.minProb) return false;
+      return true;
+    });
+    if (filters.sort === "fastest") {
+      visible = [...visible].sort((a, b) => a.total_minutes - b.total_minutes);
+    } else if (filters.sort === "reliable") {
+      visible = [...visible].sort((a, b) => b.success_probability - a.success_probability);
+    }
+  }
+  const selected = visible.find((r) => r.id === selectedId) || visible[0];
 
   return (
     <div className="p-8">
@@ -123,15 +150,32 @@ function PlanJourney() {
       )}
 
       {routes && routes.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-lg font-bold mb-3">
-            {routes.length} route{routes.length > 1 ? "s" : ""} found
-          </h2>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {routes.map((route) => (
-              <RouteCard key={route.id} route={route} />
-            ))}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[16rem_1fr_18rem]">
+          <FilterPanel filters={filters} setFilters={setFilters} />
+
+          <div>
+            <h2 className="text-lg font-bold mb-3">
+              {visible.length} route{visible.length !== 1 ? "s" : ""} found
+            </h2>
+            {visible.length === 0 && (
+              <p className="text-gray-600">No routes match your filters. Try resetting them.</p>
+            )}
+            <div className="space-y-4">
+              {visible.map((route) => (
+                <div
+                  key={route.id}
+                  onClick={() => setSelectedId(route.id)}
+                  className={`cursor-pointer rounded-xl ${
+                    selected && selected.id === route.id ? "ring-2 ring-blue-500" : ""
+                  }`}
+                >
+                  <RouteCard route={route} />
+                </div>
+              ))}
+            </div>
           </div>
+
+          <RouteInsights route={selected} />
         </div>
       )}
     </div>
