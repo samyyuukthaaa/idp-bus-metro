@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -30,6 +30,7 @@ function FitBounds({ coords }) {
 
 function RouteDetails() {
   const { state } = useLocation();
+    const navigate = useNavigate();
   const route = state?.route;
 
   if (!route) {
@@ -87,7 +88,25 @@ function RouteDetails() {
                     {modeLabel[leg.mode]} · {leg.minutes} min
                   </span>
                   <p className="font-semibold mt-1">{leg.from}</p>
-                  <p className="text-sm text-gray-500">to {leg.to}</p>
+                                    <p className="text-sm text-gray-500">to {leg.to}</p>
+                  {route.id !== undefined && (
+                    <button
+                      onClick={() =>
+                        navigate("/disruption", {
+                          state: {
+                            route,
+                            legIndex: i,
+                            start: state.start,
+                            end: state.end,
+                            buffer: state.buffer,
+                          },
+                        })
+                      }
+                      className="mt-1 text-xs text-red-600 hover:underline"
+                    >
+                      🚨 Simulate cancellation
+                    </button>
+                  )}
                 </div>
               );
             })}
