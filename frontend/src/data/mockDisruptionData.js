@@ -18,3 +18,10 @@ export const alternatives = [
   { id: 2, label: "Fastest", modes: "Bus → Metro", time: "4h 30m", cost: 650, probability: 72 },
   { id: 3, label: "Cheapest", modes: "Bus → Bus", time: "5h 40m", cost: 400, probability: 78 },
 ];
+
+
+export const comparison = [
+  { name: "Fastest", time: 4, cost: 600, reliability: 70, probability: 72 },
+  { name: "Cheapest", time: 5, cost: 400, reliability: 75, probability: 78 },
+  { name: "Recommended", time: 4.5, cost: 500, reliability: 90, probability: 91 },
+];
